@@ -2,10 +2,30 @@
     <!-- Custom Variables -->
     <PropertyGroup>
         <PluginDirectory>.../Lethal Company/BepInEx/plugins/</PluginDirectory>
+        <GameAssemblyDirectory>.../Lethal Company/Lethal Company_Data/Managed/</GameAssemblyDirectory>
     </PropertyGroup>
 
     <!-- Copy to Plugin Directory for Quicker Testing -->
     <Target Name="CopyFiles" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginDirectory)" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(PluginDirectory)/yunixfanaccount-LCPagerMod/"/>
+        <Copy SourceFiles="$(TargetDir)/pager.wav" DestinationFolder="$(PluginDirectory)/yunixfanaccount-LCPagerMod/"/>
     </Target>
+    
+    <ItemGroup>
+        <Reference Include="Assembly-CSharp" Publicize="true">
+            <HintPath>$(GameAssemblyDirectory)/Assembly-CSharp.dll</HintPath>
+        </Reference>
+
+        <Reference Include="LC_SoundTool">
+            <HintPath>$(PluginDirectory)/no00ob-LCSoundTool/LC_SoundTool.dll</HintPath>
+        </Reference>
+
+        <Reference Include="Unity.Netcode.Components">
+            <HintPath>$(GameAssemblyDirectory)/Unity.Netcode.Components.dll</HintPath>
+        </Reference>
+
+        <Reference Include="Unity.Netcode.Runtime">
+            <HintPath>$(GameAssemblyDirectory)/Unity.Netcode.Runtime.dll</HintPath>
+        </Reference>
+    </ItemGroup>
 </Project>
