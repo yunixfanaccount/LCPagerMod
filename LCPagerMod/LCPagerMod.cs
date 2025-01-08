@@ -1,9 +1,11 @@
 using BepInEx;
 using BepInEx.Logging;
+using GameNetcodeStuff;
 using HarmonyLib;
 using LCSoundTool;
 using LethalCompanyInputUtils.Api;
 using LethalCompanyInputUtils.BindingPathEnums;
+using LethalNetworkAPI;
 using LobbyCompatibility.Attributes;
 using LobbyCompatibility.Enums;
 using UnityEngine;
@@ -26,6 +28,10 @@ public class LCPagerMod : BaseUnityPlugin
     public static AudioClip NewSound;
 
     internal static PagerInput InputActionsInstance;
+
+    public static LethalClientMessage<ulong> PagerRingMessage;
+    
+    public static LethalServerMessage<ulong> PagerRingMessageServer;
     
     private void Awake()
     {
@@ -37,16 +43,40 @@ public class LCPagerMod : BaseUnityPlugin
         InputActionsInstance = new PagerInput();
         InputActionsInstance.PagerKey.performed += PagerKeyOnPress;
         
+        PagerRingMessage = new LethalClientMessage<ulong>(identifier: "PagerSoundPlay");
+        PagerRingMessageServer = new LethalServerMessage<ulong>(identifier: "PagerSoundPlay");
+        PagerRingMessage.OnReceived += ReceiveFromServer;
+        PagerRingMessage.OnReceivedFromClient += ReceiveFromClient;
+        PagerRingMessageServer.OnReceived += ServerReceiveFromClient;
+        
         Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
     }
-    
+
+    private void ServerReceiveFromClient(ulong data, ulong clientID)
+    {
+        Logger.LogWarning($"server got response from client: {data} with id: {clientID}");
+        PagerRingMessageServer.SendAllClients(clientID);
+    }
+
+    private void ReceiveFromClient(ulong data, ulong clientID)
+    {
+        Logger.LogWarning($"client got response from client: {data} with id: {clientID}");
+    }
+
+    private void ReceiveFromServer(ulong data)
+    {
+        Logger.LogWarning($"client got response from server: {data}");
+        PlayerControllerB player = data.GetPlayerController();
+        player.itemAudio.PlayOneShot(LCPagerMod.NewSound, 1f);
+        WalkieTalkie.TransmitOneShotAudio(player.itemAudio, LCPagerMod.NewSound, 1f);
+    }
+
     private void PagerKeyOnPress(InputAction.CallbackContext obj)
     {
         if (!obj.performed) return;
-        GameNetworkManager.Instance.localPlayerController.itemAudio.PlayOneShot(LCPagerMod.NewSound, 1f);
-        WalkieTalkie.TransmitOneShotAudio(GameNetworkManager.Instance.localPlayerController.itemAudio, LCPagerMod.NewSound, 1f);
+        PagerRingMessage.SendServer(0);
     }
-
+    
     internal static void Patch()
     {
         Harmony ??= new Harmony(MyPluginInfo.PLUGIN_GUID);
