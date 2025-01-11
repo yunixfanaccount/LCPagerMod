@@ -18,8 +18,8 @@ public class ExampleTVPatch
          *  So, we want to set the lights to what the tv's state was
          *  when this method is called.
          */
-        StartOfRound.Instance.shipRoomLights.SetShipLightsBoolean(__instance.tvOn);
-        GameNetworkManager.Instance.localPlayerController.itemAudio.PlayOneShot(LCPagerMod.NewSound, 1f);
-        WalkieTalkie.TransmitOneShotAudio(GameNetworkManager.Instance.localPlayerController.itemAudio, LCPagerMod.NewSound, 1f);
+        // StartOfRound.Instance.shipRoomLights.SetShipLightsBoolean(__instance.tvOn);
+        // GameNetworkManager.Instance.localPlayerController.itemAudio.PlayOneShot(LCPagerMod.NewSound, 1f);
+        // WalkieTalkie.TransmitOneShotAudio(GameNetworkManager.Instance.localPlayerController.itemAudio, LCPagerMod.NewSound, 1f);
     }
 }

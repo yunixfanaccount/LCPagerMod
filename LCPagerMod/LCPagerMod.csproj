@@ -88,7 +88,7 @@
             <HintPath>$(GameAssemblyDirectory)/Unity.InputSystem.dll</HintPath>
         </Reference>
     </ItemGroup>
-    
+
     <ItemGroup>
       <None Update="pager.wav">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

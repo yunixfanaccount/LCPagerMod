@@ -1,3 +1,4 @@
+using System;
 using BepInEx;
 using BepInEx.Logging;
 using GameNetcodeStuff;
@@ -10,7 +11,6 @@ using LobbyCompatibility.Attributes;
 using LobbyCompatibility.Enums;
 using UnityEngine;
 using UnityEngine.InputSystem;
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
 namespace LCPagerMod;
 
@@ -25,13 +25,15 @@ public class LCPagerMod : BaseUnityPlugin
     internal new static ManualLogSource Logger { get; private set; } = null!;
     internal static Harmony? Harmony { get; set; }
     
-    public static AudioClip NewSound;
+    public static AudioClip NewSound = null!;
 
-    internal static PagerInput InputActionsInstance;
+    internal static PagerInput InputActionsInstance = null!;
 
-    public static LethalClientMessage<ulong> PagerRingMessage;
+    public static LethalClientMessage<ulong> PagerRingMessage = null!;
     
-    public static LethalServerMessage<ulong> PagerRingMessageServer;
+    public static LethalServerMessage<ulong> PagerRingMessageServer = null!;
+
+    public static DateTime OldTime = DateTime.Now;
     
     private void Awake()
     {
@@ -46,7 +48,6 @@ public class LCPagerMod : BaseUnityPlugin
         PagerRingMessage = new LethalClientMessage<ulong>(identifier: "PagerSoundPlay");
         PagerRingMessageServer = new LethalServerMessage<ulong>(identifier: "PagerSoundPlay");
         PagerRingMessage.OnReceived += ReceiveFromServer;
-        PagerRingMessage.OnReceivedFromClient += ReceiveFromClient;
         PagerRingMessageServer.OnReceived += ServerReceiveFromClient;
         
         Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
@@ -54,27 +55,22 @@ public class LCPagerMod : BaseUnityPlugin
 
     private void ServerReceiveFromClient(ulong data, ulong clientID)
     {
-        Logger.LogWarning($"server got response from client: {data} with id: {clientID}");
         PagerRingMessageServer.SendAllClients(clientID);
     }
-
-    private void ReceiveFromClient(ulong data, ulong clientID)
-    {
-        Logger.LogWarning($"client got response from client: {data} with id: {clientID}");
-    }
-
+    
     private void ReceiveFromServer(ulong data)
     {
-        Logger.LogWarning($"client got response from server: {data}");
-        PlayerControllerB player = data.GetPlayerController();
-        // player.itemAudio.PlayOneShot(LCPagerMod.NewSound, 1f);
-        // player.currentVoiceChatAudioSource.PlayOneShot(LCPagerMod.NewSound, 1f);
-        player.itemAudio.clip = LCPagerMod.NewSound;
-        player.itemAudio.Play();
-        RoundManager.Instance.PlayAudibleNoise(player.oldPlayerPosition, 16f, 1f);
+        PlayerControllerB? player = data.GetPlayerController();
+        if (player == null) return;
 
-        
-        WalkieTalkie.TransmitOneShotAudio(player.itemAudio, LCPagerMod.NewSound, 1f);
+        if (DateTime.Now - OldTime > TimeSpan.FromSeconds(5))
+        {
+            OldTime = DateTime.Now;
+            player.itemAudio.clip = NewSound;
+            player.itemAudio.Play();
+            RoundManager.Instance.PlayAudibleNoise(player.oldPlayerPosition, 16f, 1.5f);
+            WalkieTalkie.TransmitOneShotAudio(player.itemAudio, NewSound, 1f);
+        } 
     }
 
     private void PagerKeyOnPress(InputAction.CallbackContext obj)
@@ -104,8 +100,8 @@ public class LCPagerMod : BaseUnityPlugin
     }
 }
 
-public class PagerInput : LcInputActions 
+public class PagerInput : LcInputActions
 {
-    [InputAction("<Keyboard>/v", Name = "PagerRing")]
-    public InputAction PagerKey { get; set; }
+    [InputAction("<Keyboard>/c", Name = "PagerRing")]
+    public InputAction PagerKey { get; set; } = null!;
 }
