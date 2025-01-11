@@ -67,7 +67,13 @@ public class LCPagerMod : BaseUnityPlugin
     {
         Logger.LogWarning($"client got response from server: {data}");
         PlayerControllerB player = data.GetPlayerController();
-        player.itemAudio.PlayOneShot(LCPagerMod.NewSound, 1f);
+        // player.itemAudio.PlayOneShot(LCPagerMod.NewSound, 1f);
+        // player.currentVoiceChatAudioSource.PlayOneShot(LCPagerMod.NewSound, 1f);
+        player.itemAudio.clip = LCPagerMod.NewSound;
+        player.itemAudio.Play();
+        RoundManager.Instance.PlayAudibleNoise(player.oldPlayerPosition, 16f, 1f);
+
+        
         WalkieTalkie.TransmitOneShotAudio(player.itemAudio, LCPagerMod.NewSound, 1f);
     }
 
